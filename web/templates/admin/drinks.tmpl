@@ -1,0 +1,68 @@
+{{define "title"}}
+Manage Drinks
+{{end}}
+
+{{define "content"}}
+    <form id="drink-form">
+        <div class="form-group">
+            <select class="form-control form-control-lg" id="drink">
+                <option value="_null" selected>Select a Drink to Edit</option>
+                <option value="_new">Create New Drink</option>
+                {{range .Drinks}}
+                    <option value="{{.ID}}">{{.Name}}</option>
+                {{end}}
+            </select>
+        </div>
+        <div class="form-group">
+            <input type="text" class="form-control" placeholder="Drink Name" name="name" id="name" style="display:none;"/>
+        </div>
+        <div class="form-group" id="ingredients-container">
+        </div>
+        <div class="form-group">
+              <textarea class="form-control" id="notes" name="notes" rows="3" style="display:none;"></textarea>
+        </div>
+        <div class="form-group">
+            <button type="button" class="btn btn-secondary btn-block btn-lg" id="add-ingredient" style="display:none;">Add Ingredient</button>
+            <button type="button" class="btn btn-success btn-block btn-lg" id="add-drink" style="display:none;">Save Drink</button>
+            <button type="button" class="btn btn-danger btn-block btn-lg" id="del-drink" style="display:none;">Remove Drink</button>
+        </div>
+    </form>
+
+    <!-- template for our form, don't have it in there so it doens't get submitted -->
+    <div id="ingredient-row" class="ingredient-row" style="display: none;">
+        <div class="row">
+            <div class="col"><input type="text" class="form-control" placeholder="Amount" name="amount" id="amount"/></div>
+            <div class="col">
+                <select class="form-control" name="units" id="units">
+                    <option value="oz">oz</option>
+                    <option value="ml">ml</option>
+                    <option value="cl">cl</option>
+                    <option value="dash">dash</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <select class="form-control" name="ingredient" id="ingredient">
+                    <option value=""></option>
+                    {{range .Ingredients}}
+                        <option value="{{.Ingredient}}">{{.Ingredient}}</option>
+                    {{end}}
+                </select>
+            </div>
+            <div class="col">
+                <input class="form-check-input" type="checkbox" value="1" id="dispense" name="dispense">
+                <label class="form-check-label" for="dispense">
+                    Dispense?
+                </label>
+                &nbsp;&nbsp;
+                <button type="button" class="btn btn-danger remove-ingredient">X</button>
+            </div>
+        </div>
+        <hr/>
+    </div>
+{{end}}
+
+{{define "js"}}
+    DrinkMachine.pages.manage_drinks.init();
+{{end}}

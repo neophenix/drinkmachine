@@ -1,0 +1,35 @@
+{{define "base"}}
+<html>
+<head>
+    <title>{{template "title"}}</title>
+    <link rel="stylesheet" href="/static/css/bootstrap-4.0.0.min.css"/>
+    <link rel="stylesheet" href="/static/css/bootswatch-darkly.min.css"/>
+    <link rel="stylesheet" href="/static/open-iconic-master/font/css/open-iconic-bootstrap.min.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <nav class="navbar navbar-light bg-light">
+        <button type="button" class="btn btn-secondary" id="home-btn"><span class="oi oi-home"></span></button>
+        <button type="button" class="btn btn-secondary" id="admin-menu-btn"><span class="oi oi-menu"></span></button>
+    </nav>
+    <nav class="nav flex-column" id="admin-menu" style="display: none;">
+        <a class="nav-link" href="/admin/drinks">Manage Drinks</a>
+        <a class="nav-link" href="/admin/ingredients">Manage Ingredients</a>
+        <a class="nav-link" href="/admin/pumps">Manage Pumps</a>
+    </nav>
+    <div class="alert alert-dismissible alert-success" id="alert" style="display:none;">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <div id="alert-msg"></div>
+    </div>
+    {{template "content" .}}
+</body>
+<script src="/static/js/jquery-3.3.1.min.js"></script>
+<script src="/static/js/popper-1.12.9.min.js"></script>
+<script src="/static/js/bootstrap-4.0.0.min.js"></script>
+<script src="/static/js/drinkmachine.js"></script>
+<script src="/static/js/drinkmachine.pages.js"></script>
+<script type="text/javascript">
+    {{template "js" .}}
+</script>
+</html>
+{{end}}

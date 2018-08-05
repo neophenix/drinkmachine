@@ -1,0 +1,39 @@
+{{define "title"}}
+Manage Pumps
+{{end}}
+
+{{define "content"}}
+    <form id="pump-form">
+        <div class="form-group">
+            <select class="form-control form-control-lg" id="pump">
+                <option value="0">Select a Pump</option>
+                {{range .Pumps}}
+                    <option value="{{.ID}}">Pump {{.ID}} - {{.Ingredient}}</option>
+                {{end}}
+            </select>
+        </div>
+
+        <div id="pump-info" style="display:none;">
+            <div class="form-group">
+                <select class="form-control" name="ingredient" id="ingredient">
+                    <option value=""></option>
+                    {{range .Ingredients}}
+                        <option value="{{.Ingredient}}">{{.Ingredient}}</option>
+                    {{end}}
+                </select>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Pump Flow Rate" name="flow_rate" id="flow-rate" value=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-success btn-block btn-lg" id="save-pump">Save</button>
+            </div>
+        </div>
+    </form>
+{{end}}
+
+{{define "js"}}
+    DrinkMachine.pages.manage_pumps.init();
+{{end}}

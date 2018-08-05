@@ -1,0 +1,14 @@
+CREATE TABLE ingredients (ingredient text not null primary key, viscosity real);
+CREATE TABLE pumps (pump_id int, flow_rate real, ingredient text, gpio_pin text);
+CREATE TABLE drinks(drink_id integer primary key, name text not null, notes text);
+CREATE TABLE drink_ingredients (ingredient text not null, amount real not null, units text not null, dispense boolean not null default true, drink_id integer, foreign key (drink_id) references drinks(drink_id));
+
+-- Pumps are the same everywhere provided the wiring diagram was followed
+INSERT INTO pumps (pump_id, flow_rate, ingredient, gpio_pin) VALUES (1, 100, null, 'GPIO_7');
+INSERT INTO pumps (pump_id, flow_rate, ingredient, gpio_pin) VALUES (2, 100, null, 'GPIO_8');
+INSERT INTO pumps (pump_id, flow_rate, ingredient, gpio_pin) VALUES (3, 100, null, 'GPIO_25');
+INSERT INTO pumps (pump_id, flow_rate, ingredient, gpio_pin) VALUES (4, 100, null, 'GPIO_24');
+INSERT INTO pumps (pump_id, flow_rate, ingredient, gpio_pin) VALUES (5, 100, null, 'GPIO_23');
+INSERT INTO pumps (pump_id, flow_rate, ingredient, gpio_pin) VALUES (6, 100, null, 'GPIO_18');
+INSERT INTO pumps (pump_id, flow_rate, ingredient, gpio_pin) VALUES (7, 100, null, 'GPIO_15');
+INSERT INTO pumps (pump_id, flow_rate, ingredient, gpio_pin) VALUES (8, 100, null, 'GPIO_14');

@@ -1,0 +1,29 @@
+{{define "title"}}
+Manage Ingredients
+{{end}}
+
+{{define "content"}}
+    <form id="ingredient-form">
+        <div class="form-group">
+            <select class="form-control form-control-lg" id="ingredient">
+                <option value="_null" selected>Select an Ingredient</option>
+                <option value="_new">Add New Ingredient</option>
+                {{range .Ingredients}}
+                    <option value="{{.Ingredient}}">{{.Ingredient}}</option>
+                {{end}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <input type="text" class="form-control" placeholder="New Ingredient" name="new-ingredient" id="new-ingredient" style="display:none;"/>
+        </div>
+        <div class="form-group">
+            <button type="button" class="btn btn-success btn-block btn-lg" id="add-ingredient" style="display:none;">Add Ingredient</button>
+            <button type="button" class="btn btn-danger btn-block btn-lg" id="del-ingredient" style="display:none;">Remove Ingredient</button>
+        </div>
+    </form>
+{{end}}
+
+{{define "js"}}
+    DrinkMachine.pages.manage_ingredients.init();
+{{end}}
