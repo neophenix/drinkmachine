@@ -8,17 +8,18 @@ The LCD is very lightly used today, to where you might ask "why is this here?". 
 
 ## Parts List
 
-Everything I used, and I tried to include links to either where I got them or at least to show generally what it is.  You might be able to find deals elsewhere, when I bought a lot of this it was whatever was cheapest.
+Everything I used, and I tried to include links to either where I got them or at least to show generally what it is.  You might be able to find deals elsewhere, when I bought a lot of this it was whatever was cheapest.  Note that this is still in flux, the original pump worked ok, but mounting was a pain, easier to mount pumps have been ordered but their amperage is quite a bit higher than the previous ones so the power supply needed swapped out.  Once a new version is entirely built and mounted I'll update this with the working parts.
 
 ```
 Raspberry Pi Zero W (with headers) - https://www.raspberrypi.org/products/raspberry-pi-zero-w/
 SainSmart 8ch relay - https://www.sainsmart.com/products/8-channel-5v-relay-module
 SainSmart I2C LCD - https://www.sainsmart.com/products/16x2-iic-i2c-twi-serial-lcd-display-blue-on-white
-8 x 12v Peristaltic pump - https://www.amazon.com/gp/product/B01IUVHB8E
-12v 2A power supply - https://www.amazon.com/gp/product/B00Q2E5IXW
+8 x 12v Peristaltic pump
+12v 5A power supply
 12v -> 5v step down - https://www.amazon.com/gp/product/B00CXKBJI2
 
 Misc Parts:
+Food grade tubing for pumps, DO NOT use the cheap vinyl tubing they come with, and order the correct ID / OD for the pumps you use
 2.1 x 5.5mm female dc plug - https://www.amazon.com/gp/product/B00CUKHN0S
 Micro USB connector - https://www.amazon.com/gp/product/B01KV4RANE
 Butt connectors
