@@ -74,7 +74,7 @@ func DrinkHandler(w http.ResponseWriter, r *http.Request) {
 func getDrink(id int64, w http.ResponseWriter) {
 	drink, err := models.GetDrink(id, "")
 	if err != nil {
-		log.Printf("Could not get drink %v: $v\n", id, err.Error())
+		log.Printf("Could not get drink %v: %v\n", id, err.Error())
 		JSONError(w, err, 500)
 		return
 	}

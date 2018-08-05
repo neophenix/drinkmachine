@@ -13,7 +13,7 @@ func GetIngredient(name string) (*Ingredient, error) {
 	return &i, err
 }
 
-// GetAllIngredients retuns all ingredients sorted by name from the db
+// GetAllIngredients returns all ingredients sorted by name from the db
 func GetAllIngredients() ([]*Ingredient, error) {
 	var list []*Ingredient
 
