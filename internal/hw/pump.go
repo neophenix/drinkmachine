@@ -16,14 +16,14 @@ var specFlowRate = float32(100)
 
 // Pump stores all the info we need to know about a pump
 type Pump struct {
-	ID         int             `json:"id"`         // The pump id as the user sees them 1 -> 8 left to right
+	ID         int             `json:"id"`         // The pump id from the user's perspective
 	FlowRate   float32         `json:"flow_rate"`  // Observed flow rate of the pump, run it for 10s, measure what you got and multiply by 6
 	Ingredient string          `json:"ingredient"` // Name of the ingredient hooked up to the pump
 	Pin        embd.DigitalPin `json:"-"`          // The GPIO pin object this pump (relay) is connected to
 	RunTime    time.Time       `json:"-"`          // The timestamp of when this pump started running
 }
 
-// Pumps is the list, in order, of the pumps as the user sees them (1 -> 8 left to right)
+// Pumps is our list of pumps in order from ID 1 - X
 var Pumps []*Pump
 
 // Run will start or continue a pump running until it has determined it has pumped the
