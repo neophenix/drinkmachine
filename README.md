@@ -30,7 +30,7 @@ Last, build the binary and start the process
 go build cmd/drinkmachine/drinkmachine.go
 sudo ./drinkmachine
 ```
-Note: we use sudo here because by default we want to use port 80.  If you don't want to run as root or want to use a port above 1024 you dont' need to sudo.
+Note: sudo is required because the GPIO lib needs it and by default we want to use port 80
 
 ## Options
 
