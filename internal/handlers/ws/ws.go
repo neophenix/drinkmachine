@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -26,6 +27,11 @@ type OutgoingMessage struct {
 	Message string `json:"message"` // text we want displayed to the user
 	Success bool   `json:"success"` // tell the frontend whether this is a good or bad message
 }
+
+// lock is a simple counter to use with atomic.AddInt32 to see if we are the only ones calling
+// MakeDrink.  I really wanted TryLock so as to not block, but without that just needed
+// something very simple to use
+var lock int32
 
 // default upgrader
 var upgrader = websocket.Upgrader{}
@@ -65,7 +71,18 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 		switch msg.Action {
 		case "make_drink":
+			count := atomic.AddInt32(&lock, 1)
+			if count != 1 {
+				// presumably it is 2 now, so remove ourselves from the count
+				atomic.AddInt32(&lock, -1)
+				// don't want to queue up users with a normal lock, so tell them to come back later
+				jsonb, _ := json.Marshal(OutgoingMessage{Message: "Currently making a drink, please wait and try again later.", Success: false})
+				conn.WriteMessage(msgtype, jsonb)
+				break
+			}
 			MakeDrink(conn, msgtype, msg)
+			// free up the lock for the next person
+			atomic.AddInt32(&lock, -1)
 		default:
 			jsonb, _ := json.Marshal(OutgoingMessage{Message: "Request not understood", Success: false})
 			conn.WriteMessage(msgtype, jsonb)
