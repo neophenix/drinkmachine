@@ -57,6 +57,8 @@ DrinkMachine.pages = new function() {
 
 
             $("#add-drink").on("click", function() {
+                if ($("#drink").val() == "_null") { return; }
+
                 var form = {
                     name: $("#name").val(), 
                     notes: $("#notes").val(), 
@@ -75,7 +77,7 @@ DrinkMachine.pages = new function() {
                     }
                 });
 
-                if ($("#drink").val()) {
+                if ($("#drink").val() !== "_new") {
                     // Updating existing drink
                     DrinkMachine.api.update("drink", $("#drink").val(), form, function(data) {
                         DrinkMachine.show_alert("success", "Your drink has been saved");
