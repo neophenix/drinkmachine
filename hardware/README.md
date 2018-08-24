@@ -14,12 +14,12 @@ Everything I used, and I tried to include links to either where I got them or at
 Raspberry Pi Zero W (with headers) - https://www.raspberrypi.org/products/raspberry-pi-zero-w/
 SainSmart 8ch relay - https://www.sainsmart.com/products/8-channel-5v-relay-module
 SainSmart I2C LCD - https://www.sainsmart.com/products/16x2-iic-i2c-twi-serial-lcd-display-blue-on-white
-8 x 12v Peristaltic pump
-12v 5A power supply
+8 x 12v Peristaltic pump - https://www.amazon.com/gp/product/B0791YL351
+12v 5A power supply - https://www.amazon.com/gp/product/B073QTNF9F
 12v -> 5v step down - https://www.amazon.com/gp/product/B00CXKBJI2
 
 Misc Parts:
-Food grade tubing for pumps, DO NOT use the cheap vinyl tubing they come with, and order the correct ID / OD for the pumps you use
+Food grade tubing for pumps, DO NOT use the cheap vinyl tubing they come with, and order the correct ID / OD for the pumps you use - https://www.amazon.com/gp/product/B0799FKWQ9
 2.1 x 5.5mm female dc plug - https://www.amazon.com/gp/product/B00CUKHN0S
 Micro USB connector - https://www.amazon.com/gp/product/B01KV4RANE
 Butt connectors
@@ -27,6 +27,7 @@ Female crimp disconnect (pwr / gnd to pumps)
 Heat shrink tubing
 Various wiring, 22awg and I used some thermostat wiring for the pumps since it was cheap at your local home improvement store
 ideal in-sure push-in wire connectors (seemed easiest to tie the pumps to the power) - http://www.idealindustries.ca/products/prodSelect.php?prodId=30-1034
+Mounting hardware - https://www.amazon.com/gp/product/B01E8JZWZ6 https://www.amazon.com/gp/product/B01IYWTCWW
 ```
 
 ## Diagrams
