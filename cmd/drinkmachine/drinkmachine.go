@@ -28,6 +28,9 @@ func main() {
 	// Log out our "config"
 	log.Printf("DB: %v\n", dbFile)
 	log.Printf("Listening on port %v\n", port)
+	if !cacheTemplates {
+		log.Printf("Template caching disabled\n")
+	}
 
 	// Channels for signal handline, sigs will get the sig, done is when we are done handling them
 	sigs := make(chan os.Signal, 1)
@@ -55,6 +58,10 @@ func main() {
 	// setup GPIO + I2C
 	hw.InitializePumps()
 	hw.InitializeLCD()
+
+	// Turn the LCD off
+	hw.BacklightToggle(false)
+	hw.DisplayToggle(false)
 
 	// tell the templates where to look for their files
 	template.WebRoot = webroot

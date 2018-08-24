@@ -95,10 +95,4 @@ func InitializeLCD() {
 		hd44780.RowAddress16Col,
 		hd44780.TwoLine,
 	)
-
-	if hd != nil {
-		hd.Clear()
-		hd.DisplayOn()
-		hd.BacklightOn()
-	}
 }
