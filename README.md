@@ -38,6 +38,7 @@ DrinkMachine has only a few command line flags to keep things simple
 ```
     -port       (default:80) which port to bind to
     -db         (default:drinkmachine.db) location of the sqlite3 DB
+    -webroot    (default:web) location of the web dir (templates, static files, etc)
     -cache_templates (default:true) more for dev work, setting to false make the service read the web templates off disk each request
 ```
 
