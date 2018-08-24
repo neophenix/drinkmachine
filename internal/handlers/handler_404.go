@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"fmt"
+	"github.com/neophenix/drinkmachine/internal/template"
 	"net/http"
 )
 
@@ -10,7 +11,7 @@ import (
 func FourOhFourHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
-	tmpl := readTemplate("404.tmpl")
+	tmpl := template.ReadTemplate("404.tmpl")
 
 	var out bytes.Buffer
 	tmpl.ExecuteTemplate(&out, "base", map[string]interface{}{

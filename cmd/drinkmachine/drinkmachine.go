@@ -15,11 +15,13 @@ import (
 
 var port string
 var dbFile string
+var webroot string
 var cacheTemplates bool
 
 func main() {
 	flag.StringVar(&port, "port", "80", "port to listen on")
 	flag.StringVar(&dbFile, "db", "drinkmachine.db", "location of sqlite db")
+	flag.StringVar(&webroot, "webroot", "web", "path of webroot (templates, static, etc)")
 	flag.BoolVar(&cacheTemplates, "cache_templates", true, "cache templates or read from disk each time")
 	flag.Parse()
 
@@ -54,8 +56,11 @@ func main() {
 	hw.InitializePumps()
 	hw.InitializeLCD()
 
+	// tell the templates where to look for their files
+	template.WebRoot = webroot
+
 	// Static file server
-	fs := http.FileServer(http.Dir("web/static"))
+	fs := http.FileServer(http.Dir(webroot + "/static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.Handle("/favicon.ico", fs)
 

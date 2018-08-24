@@ -5,6 +5,9 @@ import (
 	"log"
 )
 
+// WebRoot is the path to the web templates + static files
+var WebRoot string
+
 // CacheTemplates is the setting on whether to cache the template files or read from disk each time
 var CacheTemplates bool
 
@@ -23,9 +26,9 @@ func ReadTemplate(filename string) *template.Template {
 
 	// web templates always have the base.tmpl that provides the overall layout, and then the requested template
 	// provides all the content
-	t, err := template.New(filename).ParseFiles("web/templates/base.tmpl", "web/templates/"+filename)
+	t, err := template.New(filename).ParseFiles(WebRoot+"/templates/base.tmpl", WebRoot+"/templates/"+filename)
 	if err != nil {
-		log.Fatal("Could not open template: web/templates/" + filename + " : " + err.Error())
+		log.Fatal("Could not open template: " + WebRoot + "/templates/" + filename + " : " + err.Error())
 	}
 
 	// drop the template in cache for later
