@@ -76,6 +76,7 @@ func WriteString(msg string, line int, col int) {
 // ClearLCD just wraps the HD44780.Clear()
 func ClearLCD() {
 	hd.Clear()
+	hd.SetMode(hd44780.TwoLine)
 }
 
 // InitializeLCD inits the I2C interface as well as sets up our LCD driver with the appropriate address
