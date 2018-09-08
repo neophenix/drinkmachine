@@ -185,7 +185,7 @@ DrinkMachine.pages = new function() {
             });
 
             $("#del-ingredient").on("click", function() {
-                DrinkMachine.api.remove("ingredient", form.ingredient, function(data) {
+                DrinkMachine.api.remove("ingredient", $("#ingredient").val(), function(data) {
                     DrinkMachine.show_alert("success", "Ingredient removed");
                     $("#ingredient option[value='"+data.ingredient+"']").remove();
                 });
