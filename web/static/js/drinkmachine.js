@@ -125,10 +125,8 @@ var DrinkMachine = new function () {
     var alert_last_type = "success"; // -_-
     this.show_alert = function(type, message) {
         $("#alert-msg").html(message);
-console.log(alert_last_type, type);
         $("#alert").removeClass("alert-"+alert_last_type).addClass("alert-"+type).show();
         alert_last_type = type;
-console.log(alert_last_type, type);
         setTimeout(DrinkMachine.hide_alert, 3000);
     };
 
