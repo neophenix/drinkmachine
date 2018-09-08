@@ -79,7 +79,6 @@ func (p *Pump) Run(amount float32, units string, ingredient string) (float64, er
 // this will block with a sleep unlike Run
 func (p *Pump) RunSeconds(seconds int) {
 	DisplayToggle(true)
-	BacklightToggle(true)
 	WriteString(fmt.Sprintf("Running Pump %v", p.ID), 0, -1)
 	p.Pin.Write(embd.Low)
 	for seconds > 0 {
@@ -89,7 +88,6 @@ func (p *Pump) RunSeconds(seconds int) {
 	}
 	p.Pin.Write(embd.High)
 	DisplayToggle(false)
-	BacklightToggle(false)
 }
 
 // StopAllPumps sends a High signal to all the pumps, stopping them, useful in the event of an error
