@@ -79,6 +79,7 @@ func (p *Pump) Run(amount float32, units string, ingredient string) (float64, er
 // this will block with a sleep unlike Run
 func (p *Pump) RunSeconds(seconds int) {
 	DisplayToggle(true)
+	ClearLCD()
 	WriteString(fmt.Sprintf("Running Pump %v", p.ID), 0, -1)
 	p.Pin.Write(embd.Low)
 	for seconds > 0 {
