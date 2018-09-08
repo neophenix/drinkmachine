@@ -173,6 +173,16 @@ func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 	hw.DisplayToggle(true)
 	defer hw.DisplayToggle(false)
 	hw.ClearLCD()
+
+	hw.WriteString("Pouring in...", 0, -1)
+	countdown := 3
+	for countdown > 0 {
+		hw.WriteString(fmt.Sprintf("%v", countdown), 1, -1)
+		time.Sleep(1 * time.Second)
+		countdown--
+	}
+
+	hw.ClearLCD()
 	hw.WriteString("Pouring", 0, -1)
 	hw.WriteString(drink.Name, 1, -1)
 
