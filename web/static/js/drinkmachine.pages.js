@@ -216,6 +216,10 @@ DrinkMachine.pages = new function() {
                     DrinkMachine.show_alert("success", "Pump info saved");
                 });
             });
+
+            $("#run-pump").on("click", function() {
+                DrinkMachine.api.run_pump(parseInt($("#pump").val(), 10), parseInt($("#duration").val(), 10));
+            });
         };
     };
 };

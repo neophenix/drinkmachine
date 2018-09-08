@@ -49,6 +49,13 @@ var DrinkMachine = new function () {
                 msg = JSON.parse(msg.data);
                 console.log(msg);
                 switch (msg.type) {
+                    case 'error':
+                        DrinkMachine.show_alert("danger", msg.message);
+                        $("#drink-info").hide();
+                        $("#dispensing").hide();
+                        $("#finish").hide();
+                        ws.close();
+                        break;
                     case 'pouring':
                         $("#dispensing").append($("<div>").attr("id", msg.id).text(msg.message));
                         break;
@@ -81,6 +88,25 @@ var DrinkMachine = new function () {
                 DrinkMachine.pages.pour_drink.finish_drink();
             }
         };
+        this.run_pump = function(id, duration) {
+            var ws = new WebSocket("ws://"+window.location.host+"/ws");
+            ws.onopen = function(e) {
+                ws.send(JSON.stringify({"action": "run_pump", "id": id, "options": { "duration": duration } }));
+            }
+            ws.onmessage = function(msg) {
+                msg = JSON.parse(msg.data);
+                switch (msg.type) {
+                    case 'done':
+                        DrinkMachine.show_alert("success", "Done");
+                        ws.close();
+                        break;
+                    case 'error':
+                        DrinkMachine.show_alert("danger", msg.message);
+                        ws.close();
+                        break;
+                }
+            }
+        };
     };
 
     this.countdown = function(total, remaining) {
@@ -99,8 +125,10 @@ var DrinkMachine = new function () {
     var alert_last_type = "success"; // -_-
     this.show_alert = function(type, message) {
         $("#alert-msg").html(message);
-        $("#alert").removeClass(alert_last_type).addClass("alert-"+type).show();
+console.log(alert_last_type, type);
+        $("#alert").removeClass("alert-"+alert_last_type).addClass("alert-"+type).show();
         alert_last_type = type;
+console.log(alert_last_type, type);
         setTimeout(DrinkMachine.hide_alert, 3000);
     };
 

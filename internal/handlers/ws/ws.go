@@ -10,14 +10,18 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"sync/atomic"
 	"time"
 )
 
 // IncomingMessage is the incoming message from the UI that tells us what drink to make
 type IncomingMessage struct {
-	Action string `json:"action"` // what we are doing, which should always be "make_drink" at least for now
-	ID     int    `json:"id"`     // the id of the drink we are going to make
+	Action  string                 `json:"action"`  // what we are doing, which should always be "make_drink" at least for now
+	ID      int                    `json:"id"`      // the id of the drink we are going to make, or pump to use
+	Options IncomingMessageOptions `json:"options"` // options of the action
+}
+
+type IncomingMessageOptions struct {
+	Duration int `json:"duration"` // how long to run the pump
 }
 
 // OutgoingMessage hold status updates we want to communicate to the user
@@ -27,11 +31,6 @@ type OutgoingMessage struct {
 	Message string `json:"message"` // text we want displayed to the user
 	Success bool   `json:"success"` // tell the frontend whether this is a good or bad message
 }
-
-// lock is a simple counter to use with atomic.AddInt32 to see if we are the only ones calling
-// MakeDrink.  I really wanted TryLock so as to not block, but without that just needed
-// something very simple to use
-var lock int32
 
 // default upgrader
 var upgrader = websocket.Upgrader{}
@@ -53,7 +52,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		msgtype, encodedmsg, err := conn.ReadMessage()
 		if err != nil {
 			log.Printf("error reading ws message: %v\n", err.Error())
-			jsonb, _ := json.Marshal(OutgoingMessage{Message: "Error reading request " + err.Error(), Success: false})
+			jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "Error reading request " + err.Error(), Success: false})
 			conn.WriteMessage(msgtype, jsonb)
 			break
 		}
@@ -64,27 +63,36 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("ws recv: %v\n", msg)
 		if err != nil {
 			log.Printf("error decoding ws message: %v\n", err.Error())
-			jsonb, _ := json.Marshal(OutgoingMessage{Message: "Did not understand request " + err.Error(), Success: false})
+			jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "Did not understand request " + err.Error(), Success: false})
 			conn.WriteMessage(msgtype, jsonb)
 			break
 		}
 
 		switch msg.Action {
 		case "make_drink":
-			count := atomic.AddInt32(&lock, 1)
-			if count != 1 {
-				// presumably it is 2 now, so remove ourselves from the count
-				atomic.AddInt32(&lock, -1)
+			locked := hw.LockPumps()
+			if !locked {
 				// don't want to queue up users with a normal lock, so tell them to come back later
-				jsonb, _ := json.Marshal(OutgoingMessage{Message: "Currently making a drink, please wait and try again later.", Success: false})
+				jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "System currently in use, please wait and try again later.", Success: false})
 				conn.WriteMessage(msgtype, jsonb)
 				break
 			}
-			MakeDrink(conn, msgtype, msg)
+			makeDrink(conn, msgtype, msg)
 			// free up the lock for the next person
-			atomic.AddInt32(&lock, -1)
+			hw.UnlockPumps()
+		case "run_pump":
+			locked := hw.LockPumps()
+			if !locked {
+				// don't want to queue up users with a normal lock, so tell them to come back later
+				jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "System currently in use, please wait and try again later.", Success: false})
+				conn.WriteMessage(msgtype, jsonb)
+				break
+			}
+			runPump(conn, msgtype, msg)
+			// free up the lock for the next person
+			hw.UnlockPumps()
 		default:
-			jsonb, _ := json.Marshal(OutgoingMessage{Message: "Request not understood", Success: false})
+			jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "Request not understood", Success: false})
 			conn.WriteMessage(msgtype, jsonb)
 		}
 	}
@@ -97,11 +105,11 @@ type drinkPump struct {
 	Run        bool                    // Will initially be true, then set to false when we don't need the pump anymore
 }
 
-// MakeDrink handles figuring out what pumps to run and kicking them off, communicating back to the user and updating LCD
-func MakeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
+// makeDrink handles figuring out what pumps to run and kicking them off, communicating back to the user and updating LCD
+func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 	drink, err := models.GetDrink(int64(msg.ID), "")
 	if err != nil {
-		jsonb, _ := json.Marshal(OutgoingMessage{Message: "Could not find that drink", Success: false})
+		jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "Could not find that drink", Success: false})
 		conn.WriteMessage(msgtype, jsonb)
 		return
 	}
@@ -131,7 +139,7 @@ func MakeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 
 	// tell the user that they wanted a drink that we don't have the right hookups for
 	if len(missing) > 0 {
-		jsonb, _ := json.Marshal(OutgoingMessage{Message: "Missing ingredients: " + strings.Join(missing, ", "), Success: false})
+		jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "Missing ingredients: " + strings.Join(missing, ", "), Success: false})
 		conn.WriteMessage(msgtype, jsonb)
 		return
 	}
@@ -179,7 +187,7 @@ func MakeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 				runTime, err := p.Pump.Run(p.Ingredient.Amount, p.Ingredient.Units, p.Ingredient.Ingredient)
 				if err != nil {
 					// this will hopefully only (never?) happen when we first try to run
-					jsonb, _ := json.Marshal(OutgoingMessage{Message: fmt.Sprintf("Error running pump %v %v", p.Pump.ID, err.Error()), Success: false})
+					jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: fmt.Sprintf("Error running pump %v %v", p.Pump.ID, err.Error()), Success: false})
 					conn.WriteMessage(msgtype, jsonb)
 					return
 				}
@@ -214,4 +222,23 @@ func MakeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 			time.Sleep(d)
 		}
 	}
+}
+
+func runPump(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
+	// 5 seconds seems like a good default duration to run a pump
+	duration := 5
+	if msg.Options.Duration != 0 {
+		duration = msg.Options.Duration
+	}
+
+	if msg.ID < 1 || msg.ID > 8 {
+		jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: fmt.Sprintf("Invalid Pump number %v", msg.ID), Success: false})
+		conn.WriteMessage(msgtype, jsonb)
+		return
+	}
+
+	pump := hw.Pumps[msg.ID-1]
+	pump.RunSeconds(duration)
+	jsonb, _ := json.Marshal(OutgoingMessage{Type: "done", Message: "Done", Success: true})
+	conn.WriteMessage(msgtype, jsonb)
 }

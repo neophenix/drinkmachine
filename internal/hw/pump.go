@@ -3,13 +3,20 @@ package hw
 
 import (
 	"errors"
+	"fmt"
 	"github.com/kidoman/embd"
 	"github.com/neophenix/drinkmachine/internal/models"
 	"github.com/neophenix/drinkmachine/internal/utils"
 	"log"
 	"strings"
+	"sync/atomic"
 	"time"
 )
+
+// lock is a simple counter to use with atomic functions to see if we are the only ones
+// trying to access the pumps.  I really wanted TryLock so as to not block and return immediately,
+// but without that just needed something very simple to use
+var lock int32
 
 // specFlowRate is the spec of the pumps in ml / min
 var specFlowRate = float32(100)
@@ -68,6 +75,23 @@ func (p *Pump) Run(amount float32, units string, ingredient string) (float64, er
 	return 0, nil
 }
 
+// RunSeconds runs the specified pump for X seconds, useful for priming and cleaning.
+// this will block with a sleep unlike Run
+func (p *Pump) RunSeconds(seconds int) {
+	DisplayToggle(true)
+	BacklightToggle(true)
+	WriteString(fmt.Sprintf("Running Pump %v", p.ID), 0, -1)
+	p.Pin.Write(embd.Low)
+	for seconds > 0 {
+		WriteString(fmt.Sprintf("%v", seconds), 1, -1)
+		time.Sleep(1 * time.Second)
+		seconds--
+	}
+	p.Pin.Write(embd.High)
+	DisplayToggle(false)
+	BacklightToggle(false)
+}
+
 // StopAllPumps sends a High signal to all the pumps, stopping them, useful in the event of an error
 func StopAllPumps() {
 	log.Println("Stopping all pumps")
@@ -85,6 +109,17 @@ func UpdatePump(id int, flowrate float32, ingredient string) {
 
 	Pumps[id-1].FlowRate = flowrate
 	Pumps[id-1].Ingredient = ingredient
+}
+
+// LockPumps tries to set the lock to 1, returning the result of a CompareAndSwap, if it returns true
+// then we have the lock
+func LockPumps() bool {
+	return atomic.CompareAndSwapInt32(&lock, 0, 1)
+}
+
+// UnlockPumps tries to set the lock to 0, returning the result of a CompareAndSwap
+func UnlockPumps() bool {
+	return atomic.CompareAndSwapInt32(&lock, 1, 0)
 }
 
 // ClosePumps wraps embd.CloseGPIO for the main function to call when it ends

@@ -30,6 +30,16 @@ Manage Pumps
             <div class="form-group">
                 <button type="button" class="btn btn-success btn-block btn-lg" id="save-pump">Save</button>
             </div>
+
+            <!-- Run a pump to prime it, clean it, whatever -->
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Seconds to Run Pump (default 5)" name="duration" id="duration" value=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-info btn-block btn-lg" id="run-pump">Run Pump</button>
+            </div>
         </div>
     </form>
 {{end}}
