@@ -20,6 +20,8 @@ type IncomingMessage struct {
 	Options IncomingMessageOptions `json:"options"` // options of the action
 }
 
+// IncomingMessageOptions hold options for actions from the frontend
+//  * Duration - how long to run a pump when run_pump is passed
 type IncomingMessageOptions struct {
 	Duration int `json:"duration"` // how long to run the pump
 }
@@ -31,6 +33,10 @@ type OutgoingMessage struct {
 	Message string `json:"message"` // text we want displayed to the user
 	Success bool   `json:"success"` // tell the frontend whether this is a good or bad message
 }
+
+// stopRunning is set to true when a stop command is received from the frontend, maybe
+// some ingredient ran out or the user picked the wrong drink.
+var stopRunning = false
 
 // default upgrader
 var upgrader = websocket.Upgrader{}
@@ -77,6 +83,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				conn.WriteMessage(msgtype, jsonb)
 				break
 			}
+			// make sure our stop flag is false, user can hit stop from here on out
+			stopRunning = false
 			makeDrink(conn, msgtype, msg)
 			// free up the lock for the next person
 			hw.UnlockPumps()
@@ -91,6 +99,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			runPump(conn, msgtype, msg)
 			// free up the lock for the next person
 			hw.UnlockPumps()
+		case "stop":
+			// just set the stop flag to true, the current running loop should stop within a second
+			stopRunning = true
 		default:
 			jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "Request not understood", Success: false})
 			conn.WriteMessage(msgtype, jsonb)
@@ -187,10 +198,9 @@ func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 	hw.WriteString(drink.Name, 1, -1)
 
 	var timeRemaining float64 = 1
-	for timeRemaining > 0 {
+	for timeRemaining > 0 && !stopRunning {
 		// we set these each loop so reset them here to a known state
 		timeRemaining = 0
-		var sleep float64
 
 		for _, p := range pumpsToUse {
 			if p.Run {
@@ -209,11 +219,6 @@ func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 					jsonb, _ := json.Marshal(OutgoingMessage{ID: p.Ingredient.Ingredient, Type: "pour_complete", Success: true})
 					conn.WriteMessage(msgtype, jsonb)
 				} else {
-					// use the lesser of sleep or runTime to sleep later on, basically we only wake up when we know we have something to do
-					if sleep == 0 || runTime <= sleep {
-						sleep = runTime
-					}
-
 					// use the greater of runTime or timeRemaining so we keep looping and can report back to the user
 					if runTime > timeRemaining {
 						timeRemaining = runTime
@@ -222,15 +227,22 @@ func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 			}
 		}
 
-		// report back how much time we have left and then go to sleep until we have another pump to shut off (or we are done)
+		// report back how much time we have left
 		msg := fmt.Sprintf("%v", timeRemaining)
 		jsonb, _ := json.Marshal(OutgoingMessage{Type: "time_remaining", Message: msg, Success: true})
 		conn.WriteMessage(msgtype, jsonb)
-		if sleep > 0 {
-			// time doesn't like multiplying our fractional second by time.Second so go the long route and convert and parse it
-			d, _ := time.ParseDuration(fmt.Sprintf("%vs", sleep))
-			time.Sleep(d)
+
+		if timeRemaining > 0 {
+			time.Sleep(1 * time.Second)
 		}
+	}
+
+	// If we stopped because the user hit stop, shut off all the pumps, and just return back a time_remaining of 0 for now so the UI thinks we finished.
+	// Later I'd like to get fancier here and perhaps hand back a list of amounts still missing
+	if stopRunning {
+		hw.StopAllPumps()
+		jsonb, _ := json.Marshal(OutgoingMessage{Type: "time_remaining", Message: "0", Success: true})
+		conn.WriteMessage(msgtype, jsonb)
 	}
 }
 

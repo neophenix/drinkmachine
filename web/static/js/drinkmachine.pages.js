@@ -13,11 +13,18 @@ DrinkMachine.pages = new function() {
             $("#pour-drink").on("click", function() {
                 DrinkMachine.api.pour_drink($("#drink").val());
             });
+
+            $("#stop").on("click", function() {
+                DrinkMachine.api.stop_pumps();
+            });
         };
 
         this.finish_drink = function() {
             $("#drink").val(0);
+            $("#dispensing").hide();
+            $("#progress").hide();
             $("#pour-drink").hide();
+            $("#stop").hide();
         };
     };
 

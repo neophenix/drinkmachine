@@ -41,6 +41,7 @@ var DrinkMachine = new function () {
             ws.onopen = function(e) {
                 ws.send(JSON.stringify({"action": "make_drink", "id": parseInt(id, 10)}));
                 $("#drink-info").show();
+                $("#stop").show();
                 // drink info, ingredients, approx time, etc
                 $("#dispensing").html("Dispensing:<br/>").show();
                 $("#finish").html("Finish with:<br/>");
@@ -69,17 +70,15 @@ var DrinkMachine = new function () {
                         $("#finish").append($("<div>").text(msg.message));
                         break;
                     case 'time_remaining':
-                        if (time_remaining == -1) {
-                            time_remaining = parseFloat(msg.message)
+                        var backend_time_remaining = parseFloat(msg.message);
+                        if (backend_time_remaining == 0) {
+                            ws.close();
+                        }
+                        else if (time_remaining == -1) {
+                            time_remaining = backend_time_remaining;
                             $("#progress").show();
                             $("#drink-timer").attr("aria-valuemax", time_remaining)
                             setTimeout(function() { DrinkMachine.countdown(time_remaining, time_remaining); },0);
-                        }
-                        else {
-                            time_remaining = parseFloat(msg.message)
-                            if (time_remaining == 0) {
-                                ws.close();
-                            }
                         }
                         break;
                 }
@@ -88,6 +87,7 @@ var DrinkMachine = new function () {
                 DrinkMachine.pages.pour_drink.finish_drink();
             }
         };
+
         this.run_pump = function(id, duration) {
             var ws = new WebSocket("ws://"+window.location.host+"/ws");
             ws.onopen = function(e) {
@@ -105,6 +105,13 @@ var DrinkMachine = new function () {
                         ws.close();
                         break;
                 }
+            }
+        };
+
+        this.stop_pumps = function() {
+            var ws = new WebSocket("ws://"+window.location.host+"/ws");
+            ws.onopen = function(e) {
+                ws.send(JSON.stringify({"action": "stop", "id": 0}));
             }
         };
     };

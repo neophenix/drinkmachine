@@ -96,6 +96,8 @@ func StopAllPumps() {
 	log.Println("Stopping all pumps")
 	for _, p := range Pumps {
 		p.Pin.Write(embd.High)
+		// reset any internal timers for the pump
+		p.RunTime = time.Time{}
 	}
 }
 
