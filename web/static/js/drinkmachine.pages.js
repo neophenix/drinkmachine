@@ -11,7 +11,11 @@ DrinkMachine.pages = new function() {
             });
 
             $("#pour-drink").on("click", function() {
-                DrinkMachine.api.pour_drink($("#drink").val());
+                DrinkMachine.api.pour_drink($("#drink").val(), false);
+            });
+
+            $("#pour-drink-missing").on("click", function() {
+                DrinkMachine.api.pour_drink($("#drink").val(), true);
             });
 
             $("#stop").on("click", function() {
@@ -22,8 +26,10 @@ DrinkMachine.pages = new function() {
         this.finish_drink = function() {
             $("#drink").val(0);
             $("#dispensing").hide();
+            $("#missing").hide();
             $("#progress").hide();
             $("#pour-drink").hide();
+            $("#pour-drink-missing").hide();
             $("#stop").hide();
         };
     };

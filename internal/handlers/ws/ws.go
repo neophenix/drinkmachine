@@ -23,7 +23,8 @@ type IncomingMessage struct {
 // IncomingMessageOptions hold options for actions from the frontend
 //  * Duration - how long to run a pump when run_pump is passed
 type IncomingMessageOptions struct {
-	Duration int `json:"duration"` // how long to run the pump
+	Duration int  `json:"duration"` // how long to run the pump
+	Override bool `json:"override"` // override flag to pour a drink with missing ingredients, maybe something else in the future
 }
 
 // OutgoingMessage hold status updates we want to communicate to the user
@@ -132,6 +133,7 @@ func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 	}
 
 	var missing []string        // any missing ingredients
+	var dispensing []string     // ingredients we will actually dispense
 	var pumpsToUse []*drinkPump // list of all the pumps we are going to need
 	for _, i := range drink.Ingredients {
 		// only look at things we can pump
@@ -141,30 +143,37 @@ func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 				for _, p := range list {
 					pumpsToUse = append(pumpsToUse, &drinkPump{Pump: p, Ingredient: i, Run: true})
 				}
+				dispensing = append(dispensing, fmt.Sprintf("%v %v %v", i.Amount, i.Units, i.Ingredient))
 			} else {
 				// we don't have this ingredient so add it here and we will tell the user in a moment
-				missing = append(missing, i.Ingredient)
+				missing = append(missing, fmt.Sprintf("%v %v %v", i.Amount, i.Units, i.Ingredient))
 			}
 		}
 	}
 
 	// tell the user that they wanted a drink that we don't have the right hookups for
 	if len(missing) > 0 {
-		jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "Missing ingredients: " + strings.Join(missing, ", "), Success: false})
-		conn.WriteMessage(msgtype, jsonb)
-		return
+		// If the user has chosen to override the missing indredients, pass them back up as a finish item,
+		// so they have a full list of things to add when we are done
+		if msg.Options.Override {
+			for _, ingredient := range missing {
+				jsonb, _ := json.Marshal(OutgoingMessage{Type: "finish", Message: ingredient, Success: true})
+				conn.WriteMessage(msgtype, jsonb)
+			}
+		} else {
+			jsonb, _ := json.Marshal(OutgoingMessage{Type: "missing", Message: strings.Join(missing, "<br/>"), Success: false})
+			conn.WriteMessage(msgtype, jsonb)
+			return
+		}
 	}
 
 	// lets us bail and cleanup in the event of an error, stop all the pumps
 	defer hw.StopAllPumps()
 
 	// give the UI a list of ingredients we are going to pour
-	for _, i := range drink.Ingredients {
-		if i.Dispense {
-			message := fmt.Sprintf("%v %v %v", i.Amount, i.Units, i.Ingredient)
-			jsonb, _ := json.Marshal(OutgoingMessage{ID: i.Ingredient, Type: "pouring", Message: message, Success: true})
-			conn.WriteMessage(msgtype, jsonb)
-		}
+	for _, ingredient := range dispensing {
+		jsonb, _ := json.Marshal(OutgoingMessage{Type: "pouring", Message: ingredient, Success: true})
+		conn.WriteMessage(msgtype, jsonb)
 	}
 
 	// now send up anything we aren't going to dispense, it will hide this until we are done
@@ -192,6 +201,11 @@ func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 		time.Sleep(1 * time.Second)
 		countdown--
 	}
+
+	// We made it through any error checking, so now that we are going to make the drink send a message to the UI to
+	// show the appropriate info, could use notes for this, but making its own message in the event we change that later
+	jsonb, _ = json.Marshal(OutgoingMessage{Type: "starting", Message: "", Success: true})
+	conn.WriteMessage(msgtype, jsonb)
 
 	hw.ClearLCD()
 	hw.WriteString("Pouring", 0, -1)

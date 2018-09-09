@@ -32,18 +32,22 @@ var DrinkMachine = new function () {
             });
         };
 
-        this.pour_drink = function(id) {
+        this.pour_drink = function(id, override) {
+            // Start out hiding all the various buttons, info divs, etc
+            $("#pour-drink").hide();
+            $("#pour-drink-missing").hide();
             $("#drink-info").hide();
             $("#dispensing").hide();
+            $("#missing").hide();
             $("#finish").hide();
+
+            // set to -1 so we know when we get our first time_remaining message
             var time_remaining = -1;
             var ws = new WebSocket("ws://"+window.location.host+"/ws");
             ws.onopen = function(e) {
-                ws.send(JSON.stringify({"action": "make_drink", "id": parseInt(id, 10)}));
-                $("#drink-info").show();
-                $("#stop").show();
-                // drink info, ingredients, approx time, etc
-                $("#dispensing").html("Dispensing:<br/>").show();
+                ws.send(JSON.stringify({"action": "make_drink", "id": parseInt(id, 10), "options": {"override": override}}));
+                // reset drink info, ingredients, approx time, etc
+                $("#dispensing").html("Dispensing:<br/>");
                 $("#finish").html("Finish with:<br/>");
             }
             ws.onmessage = function(msg) {
@@ -57,11 +61,20 @@ var DrinkMachine = new function () {
                         $("#finish").hide();
                         ws.close();
                         break;
+                    case 'starting':
+                        $("#drink-info").show();
+                        $("#dispensing").show();
+                        break;
                     case 'pouring':
                         $("#dispensing").append($("<div>").attr("id", msg.id).text(msg.message));
+                        $("#stop").show();
                         break;
                     case 'pour_complete':
                         $("#dispensing").find("[id='"+msg.id+"']").remove();
+                        break;
+                    case 'missing':
+                        $("#pour-drink-missing").show();
+                        $("#missing").html("Missing Ingredients:<br/>" + msg.message).show();
                         break;
                     case 'finish':
                         $("#finish").append($("<div>").text(msg.message));
