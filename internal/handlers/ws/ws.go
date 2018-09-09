@@ -186,8 +186,10 @@ func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 	}
 
 	// and lastly any notes on the drink
-	jsonb, _ := json.Marshal(OutgoingMessage{Type: "notes", Message: drink.Notes, Success: true})
-	conn.WriteMessage(msgtype, jsonb)
+	if drink.Notes != "" {
+		jsonb, _ := json.Marshal(OutgoingMessage{Type: "notes", Message: drink.Notes, Success: true})
+		conn.WriteMessage(msgtype, jsonb)
+	}
 
 	// display something on the LCD since I have that hooked up
 	hw.DisplayToggle(true)
@@ -202,9 +204,8 @@ func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
 		countdown--
 	}
 
-	// We made it through any error checking, so now that we are going to make the drink send a message to the UI to
-	// show the appropriate info, could use notes for this, but making its own message in the event we change that later
-	jsonb, _ = json.Marshal(OutgoingMessage{Type: "starting", Message: "", Success: true})
+	// We made it through any error checking, so now that we are going to make the drink send a message to the UI to show the appropriate info
+	jsonb, _ := json.Marshal(OutgoingMessage{Type: "starting", Message: "", Success: true})
 	conn.WriteMessage(msgtype, jsonb)
 
 	hw.ClearLCD()

@@ -41,6 +41,9 @@ var DrinkMachine = new function () {
             $("#missing").hide();
             $("#finish").hide();
 
+            // We will only show the finishing items if we have any
+            var show_finish = false;
+
             // set to -1 so we know when we get our first time_remaining message
             var time_remaining = -1;
             var ws = new WebSocket("ws://"+window.location.host+"/ws");
@@ -77,14 +80,21 @@ var DrinkMachine = new function () {
                         $("#missing").html("Missing Ingredients:<br/>" + msg.message).show();
                         break;
                     case 'finish':
+                        show_finish = true;
                         $("#finish").append($("<div>").text(msg.message));
                         break;
                     case 'notes':
+                        show_finish = true;
                         $("#finish").append($("<div>").text(msg.message));
                         break;
                     case 'time_remaining':
                         var backend_time_remaining = parseFloat(msg.message);
                         if (backend_time_remaining == 0) {
+                            $("#progress").hide();
+                            $("#dispensing").hide();
+                            if (show_finish) {
+                                $("#finish").show();
+                            }
                             ws.close();
                         }
                         else if (time_remaining == -1) {
@@ -134,11 +144,6 @@ var DrinkMachine = new function () {
         $("#drink-timer").attr("aria-valuenow",remaining).width(pct+"%");
         if (remaining > 0) {
             setTimeout(function() { DrinkMachine.countdown(total, remaining-1); }, 1000);
-        }
-        else {
-            $("#progress").hide();
-            $("#dispensing").hide();
-            $("#finish").show();
         }
     };
 
