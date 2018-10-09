@@ -6,10 +6,17 @@ Pour a Drink
     <form>
         <div class="form-group">
             <select class="form-control form-control-lg" id="drink">
-                    <option value="0" selected>Choose a Drink</option>
+                <option value="0" selected>Choose a Drink</option>
+                <optgroup label="Drinks">
                 {{range .Drinks}}
                     <option value="{{.ID}}">{{.Name}}</option>
                 {{end}}
+                </optgroup>
+                <optgroup label="Shots (1.5 oz)">
+                {{range $key, $val := .Ingredients}}
+                    <option value="{{$key}}">{{$key}}</option>
+                {{end}}
+                </optgroup>
             </select>
         </div>
         <div class="alert alert-warning" id="missing" style="display: none;">

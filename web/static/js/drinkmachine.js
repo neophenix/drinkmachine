@@ -48,7 +48,21 @@ var DrinkMachine = new function () {
             var time_remaining = -1;
             var ws = new WebSocket("ws://"+window.location.host+"/ws");
             ws.onopen = function(e) {
-                ws.send(JSON.stringify({"action": "make_drink", "id": parseInt(id, 10), "options": {"override": override}}));
+                var message = {
+                    "action": "make_drink",
+                    "options": {
+                        "override": override
+                    }
+                };
+                if ( drinkid = parseInt(id, 10) ) {
+                    message.id = drinkid;
+                }
+                else {
+                    message.id = -1;
+                    message.options.ingredient = id; // should be the ingredient name
+                }
+
+                ws.send(JSON.stringify(message));
                 // reset drink info, ingredients, approx time, etc
                 $("#dispensing").html("Dispensing:<br/>");
                 $("#finish").html("Finish with:<br/>");

@@ -23,8 +23,9 @@ type IncomingMessage struct {
 // IncomingMessageOptions hold options for actions from the frontend
 //  * Duration - how long to run a pump when run_pump is passed
 type IncomingMessageOptions struct {
-	Duration int  `json:"duration"` // how long to run the pump
-	Override bool `json:"override"` // override flag to pour a drink with missing ingredients, maybe something else in the future
+	Duration   int    `json:"duration"`   // how long to run the pump
+	Override   bool   `json:"override"`   // override flag to pour a drink with missing ingredients, maybe something else in the future
+	Ingredient string `json:"ingredient"` // for pouring a single shot (ID -1) specify the ingredient here
 }
 
 // OutgoingMessage hold status updates we want to communicate to the user
@@ -119,8 +120,29 @@ type drinkPump struct {
 
 // makeDrink handles figuring out what pumps to run and kicking them off, communicating back to the user and updating LCD
 func makeDrink(conn *websocket.Conn, msgtype int, msg IncomingMessage) {
-	drink, err := models.GetDrink(int64(msg.ID), "")
-	if err != nil {
+	var drink *models.Drink
+	var err error
+
+	if msg.ID > 0 {
+		drink, err = models.GetDrink(int64(msg.ID), "")
+		if err != nil {
+			jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "Could not find that drink", Success: false})
+			conn.WriteMessage(msgtype, jsonb)
+			return
+		}
+	} else if msg.ID == -1 {
+		// pouring a single shot / ingredient, so make a "fake drink"
+		ingred := &models.DrinkIngredient{
+			Ingredient: msg.Options.Ingredient,
+			Amount:     1.5,
+			Units:      "oz",
+			Dispense:   true,
+		}
+		drink = &models.Drink{
+			Name:        msg.Options.Ingredient,
+			Ingredients: []*models.DrinkIngredient{ingred},
+		}
+	} else {
 		jsonb, _ := json.Marshal(OutgoingMessage{Type: "error", Message: "Could not find that drink", Success: false})
 		conn.WriteMessage(msgtype, jsonb)
 		return
